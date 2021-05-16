@@ -6,15 +6,20 @@ import java.util.*
 
 class KomutaTest {
 
+    private val cardToPoint = mutableMapOf<Int, String>()
+    private val pointToCard = mutableMapOf<String, Int>()
+
     /**
      * A few curve points usable as prebaked message embeddings
+     * This could represent a deck of cards
      */
-    val cardEmbeddings = arrayOf(
-        "V5aZXdL2bfzyXqnwcYCsHpa5ojGKxc7Nh9vMQIrnvlY=",
-        "27kXjSX9x+O6AT/uf/KHBwdlE/5pUHj3JOxXmh9SsiE=",
-        "M2d/3YvGrWzDAUQ5wckpaYB/od85NEzPN4DohhI0d3Y=",
-        "eVkpC5mUtBLogawnkBwPDGMpwq5UheJf9LrY04GwHAU="
-    )
+    private val cardEmbeddings = (0 until 52).map { cardIndex ->
+        val scalar = byteArrayOf(42, cardIndex.toByte())
+        val point = Curve25519.keyPairFromScalar(scalar).publicKey.encoded
+        cardToPoint[cardIndex] = point
+        pointToCard[point] = cardIndex
+        point
+    }
 
     @Test
     fun `decode base64`() {
@@ -90,9 +95,10 @@ class KomutaTest {
     }
 
     @Test
-    fun `triple encrypt card, with serialization, decrypt radnom order`() {
-        val card1 = cardEmbeddings[1]
-        var maskedCard = Komuta(PublicKey(card1))
+    fun `triple encrypt card, with serialization, decrypt random order`() {
+        val card1 = 1
+        val embeddedCard = cardToPoint[card1]!!
+        var maskedCard = Komuta(PublicKey(embeddedCard))
 
         val aliceKeypair = Curve25519.keyPair()
         val bobKeypair = Curve25519.keyPair()
@@ -102,8 +108,11 @@ class KomutaTest {
         maskedCard.addEncryption(aliceKeypair.publicKey)
         maskedCard.addEncryption(bobKeypair.publicKey)
         maskedCard.addEncryption(charlieKeypair.publicKey)
-        Assert.assertTrue(maskedCard.isMasked())
         val toBob = maskedCard.toString()
+
+        Assert.assertTrue(maskedCard.isMasked())
+        Assert.assertTrue(pointToCard.containsKey(embeddedCard))
+        Assert.assertFalse(pointToCard.containsKey(maskedCard.accumulator.encodeBase64()))
 
         //bob decrypts
         maskedCard = Komuta.fromString(toBob)
@@ -118,7 +127,7 @@ class KomutaTest {
         maskedCard.removeEncryption(charlieKeypair)
 
         Assert.assertFalse(maskedCard.isMasked())
-
-        Assert.assertArrayEquals(card1.decodeBase64(), maskedCard.accumulator)
+        val recoveredCard = pointToCard[maskedCard.accumulator.encodeBase64()]
+        Assert.assertEquals(card1, recoveredCard)
     }
 }

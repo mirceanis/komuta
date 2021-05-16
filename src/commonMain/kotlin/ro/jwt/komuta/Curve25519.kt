@@ -1,5 +1,7 @@
 package ro.jwt.komuta
 
+import kotlin.math.min
+
 object Curve25519 {
 
     const val POINT_BYTES = 32
@@ -59,6 +61,20 @@ object Curve25519 {
      */
     fun keyPair(): KeyPair {
         val sk = randomBytes(SCALAR_BYTES)
+        val pk = ByteArray(POINT_BYTES)
+        Curve25519LowLevel.scalarMultBase(pk, sk)
+        return KeyPair(sk, PublicKey(pk.encodeBase64()))
+    }
+
+    /**
+     * Generates a new key pair from an existing byte array.
+     * At most 32 bytes are used from the input byte array.
+     */
+    fun keyPairFromScalar(scalar: ByteArray): KeyPair {
+        val sk = ByteArray(SCALAR_BYTES)
+        scalar.copyInto(
+            sk, 0, 0, min(SCALAR_BYTES, scalar.size)
+        )
         val pk = ByteArray(POINT_BYTES)
         Curve25519LowLevel.scalarMultBase(pk, sk)
         return KeyPair(sk, PublicKey(pk.encodeBase64()))
