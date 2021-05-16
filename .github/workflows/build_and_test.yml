@@ -28,7 +28,8 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: cache-gradle-${{ hashFiles('**/*.gradle*') }}-${{ hashFiles('**/gradle/wrapper/gradle-wrapper.properties') }}
+            ~/.konan
+          key: cache-gradle-and-deps-${{ hashFiles('**/*gradle*') }}
 
       - name: Build project
         run: ./gradlew build --stacktrace
