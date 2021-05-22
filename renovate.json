@@ -3,5 +3,8 @@
     "config:base"
   ],
   "automerge": true,
-  "automergeType": "branch"
+  "automergeType": "branch",
+  "schedule": [
+    "before 5am on Friday"
+  ]
 }

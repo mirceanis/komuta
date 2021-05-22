@@ -1,12 +1,14 @@
 plugins {
     kotlin("multiplatform") version "1.5.0"
+    id("maven-publish")
 }
 
 group = "ro.jwt"
-version = "0.1"
+version = "0.1.0"
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 kotlin {
@@ -57,5 +59,22 @@ kotlin {
         }
         val nativeMain by getting
         val nativeTest by getting
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "DummyLocal"
+            url = uri(layout.buildDirectory.dir("localPublishRepo"))
+        }
+        maven {
+            name = "GithubPackages"
+            url = uri("https://maven.pkg.github.com/mirceanis/komuta")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
     }
 }

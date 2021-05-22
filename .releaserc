@@ -1,0 +1,25 @@
+{
+  "tagFormat": "${version}",
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "./gradlew build",
+        "publishCmd": "./gradlew publish"
+      }
+    ],
+    "@semantic-release/git",
+    "@semantic-release/github"
+  ],
+  "branches": [
+    "main"
+  ]
+}
