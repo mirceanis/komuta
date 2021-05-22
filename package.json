@@ -1,0 +1,27 @@
+{
+  "name": "komuta",
+  "private": "true",
+  "description": "A naive Elgamal commutative encryption implementation using Curve25519.",
+  "scripts": {
+    "test": "./gradlew jvmTest jsTest nativeTest",
+    "build": "./gradlew build",
+    "release": "semantic-release --debug"
+  },
+  "author": "Mircea Nistor",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:mirceanis/komuta.git"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "5.0.1",
+    "@semantic-release/commit-analyzer": "8.0.1",
+    "@semantic-release/exec": "5.0.0",
+    "@semantic-release/git": "9.0.0",
+    "@semantic-release/github": "7.2.3",
+    "@semantic-release/release-notes-generator": "9.0.2",
+    "semantic-release": "17.4.3"
+  }
+}

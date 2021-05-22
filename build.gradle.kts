@@ -1,12 +1,16 @@
+import org.jetbrains.kotlin.konan.properties.loadProperties
+
 plugins {
     kotlin("multiplatform") version "1.5.0"
+    id("maven-publish")
 }
 
 group = "ro.jwt"
-version = "0.1"
+version = getCurrentVersion()
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 kotlin {
@@ -58,4 +62,26 @@ kotlin {
         val nativeMain by getting
         val nativeTest by getting
     }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "DummyLocal"
+            url = uri(layout.buildDirectory.dir("localPublishRepo"))
+        }
+        maven {
+            name = "GithubPackages"
+            url = uri("https://maven.pkg.github.com/mirceanis/komuta")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
+
+fun getCurrentVersion(): String {
+    val props = loadProperties("version.properties")
+    return props.getProperty("version") ?: "0.0.42-dev"
 }
