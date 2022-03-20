@@ -3,7 +3,7 @@
   "private": "true",
   "description": "A naive Elgamal commutative encryption implementation using Curve25519.",
   "scripts": {
-    "test": "./gradlew jvmTest jsTest nativeTest",
+    "test": "./gradlew jvmTest jsTest",
     "build": "./gradlew build",
     "release": "semantic-release --debug"
   },

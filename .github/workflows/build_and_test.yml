@@ -23,7 +23,7 @@ jobs:
           distribution: 'adopt'
           java-version: 11
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: |
             ~/.gradle/caches
@@ -40,5 +40,6 @@ jobs:
       - name: run JS tests
         run: ./gradlew jsTest --stacktrace
 
-      - name: run native tests
-        run: ./gradlew nativeTest --stacktrace
+# # XXX: disabling native targets because they still cause trouble on apple M1 in kotlin 1.6.10
+#      - name: run native tests
+#        run: ./gradlew nativeTest --stacktrace
