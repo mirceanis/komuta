@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/mirceanis/komuta/compare/1.0.0...1.0.1) (2022-03-20)
+
+
+### Bug Fixes
+
+* **deps:** fix js build and remove native build because of hardcoding issues in kotlin 1.6.10 ([ed2b0e5](https://github.com/mirceanis/komuta/commit/ed2b0e5cb26bf055fb0457f3422aa0c5193841cb))
+
 # 1.0.0 (2021-05-22)
 
 
