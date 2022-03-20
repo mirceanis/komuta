@@ -32,12 +32,13 @@ kotlin {
     }
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTarget = when {
-        hostOs == "Mac OS X" -> macosX64("native")
-        hostOs == "Linux" -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-    }
+// // XXX: disabling native targets because they still cause trouble on apple M1 in kotlin 1.6.10
+//    val nativeTarget = when {
+//        hostOs == "Mac OS X" -> macosX64("native")
+//        hostOs == "Linux" -> linuxX64("native")
+//        isMingwX64 -> mingwX64("native")
+//        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+//    }
 
     sourceSets {
         val commonMain by getting
@@ -59,8 +60,9 @@ kotlin {
                 implementation(kotlin("test-js"))
             }
         }
-        val nativeMain by getting
-        val nativeTest by getting
+// // XXX: disabling native targets because they still cause trouble on apple M1 in kotlin 1.6.10
+//        val nativeMain by getting
+//        val nativeTest by getting
     }
 }
 
@@ -84,4 +86,9 @@ publishing {
 fun getCurrentVersion(): String {
     val props = loadProperties("version.properties")
     return props.getProperty("version") ?: "0.0.42-dev"
+}
+
+// // XXX: workaround for hardcoded nodejs version bug in kotlin 1.6.10
+rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin> {
+    rootProject.the<org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension>().nodeVersion = "16.0.0"
 }
