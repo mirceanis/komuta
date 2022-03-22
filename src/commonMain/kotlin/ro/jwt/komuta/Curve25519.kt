@@ -5,7 +5,7 @@ import kotlin.math.min
 object Curve25519 {
 
     const val POINT_BYTES = 32
-    private const val SCALAR_BYTES = 32
+    const val SCALAR_BYTES = 32
 
     /**
      * scalar multiplication
@@ -55,31 +55,4 @@ object Curve25519 {
         Curve25519LowLevel.pack25519(q, resultPoint)
         return q
     }
-
-    /**
-     * Generates a new key pair
-     */
-    fun keyPair(): KeyPair {
-        val sk = randomBytes(SCALAR_BYTES)
-        val pk = ByteArray(POINT_BYTES)
-        Curve25519LowLevel.scalarMultBase(pk, sk)
-        return KeyPair(sk, PublicKey(pk.encodeBase64()))
-    }
-
-    /**
-     * Generates a new key pair from an existing byte array.
-     * At most 32 bytes are used from the input byte array.
-     */
-    fun keyPairFromScalar(scalar: ByteArray): KeyPair {
-        val sk = ByteArray(SCALAR_BYTES)
-        scalar.copyInto(
-            sk, 0, 0, min(SCALAR_BYTES, scalar.size)
-        )
-        val pk = ByteArray(POINT_BYTES)
-        Curve25519LowLevel.scalarMultBase(pk, sk)
-        return KeyPair(sk, PublicKey(pk.encodeBase64()))
-    }
-
-    class KeyPair(val privateKey: ByteArray, val publicKey: PublicKey)
 }
-

@@ -1,75 +1,67 @@
-package ro.jwt.komuta
-
-import ro.jwt.komuta.BaseCodec.Base.base64pad
-import ro.jwt.komuta.Curve25519.POINT_BYTES
+import ro.jwt.komuta.*
 
 /**
- * Wraps a commutative encryption system.
- *
+ * Encapsulates all the data related to a message masked by multiple players using an ElGamal style encryption.
  * The assumption is that your message is already mapped onto a msgEmbedding.
- * You can also initialize this with an already encrypted message, in which case you would also need to add the mapping of ephemeralKeys.
  */
-class Komuta(msgEmbedding: PublicKey, ephemeralKeys: Map<String, ByteArray> = emptyMap()) {
+data class Komuta(
+    /**
+     * The combined public key of all the players participating in masking
+     */
+    val pk: Point = Point.ZERO,
 
-    val accumulator: ByteArray = ByteArray(POINT_BYTES)
-    private val pubKeys: MutableMap<String, ByteArray> = mutableMapOf()
+    /**
+     * The combined "ephemeral" public key of all the mask operations.
+     */
+    val epk: Point = Point.ZERO,
 
-    init {
-        msgEmbedding.encoded.decodeBase64().copyInto(this.accumulator)
-        pubKeys.putAll(ephemeralKeys)
+    /**
+     * The resulting masked message.
+     *
+     * When the combined public key `pk` is [Point.ZERO], this is the cleartext message,
+     * assuming that unmasking has been performed with the correct keys.
+     */
+    val msg: Point
+) {
+
+    /**
+     * Applies an extra mask to the message.
+     */
+    fun mask(nonce: Scalar = Scalar.random()): Komuta {
+        val c1 = Point.fromPrivate(nonce)
+        val c2 = this.pk.scalarMult(nonce)
+        return Komuta(this.pk, this.epk.add(c1), this.msg.add(c2))
     }
 
-    fun addEncryption(pubKey: PublicKey) {
-        val ephemeral = Curve25519.keyPair()
-        val sharedSecret = Curve25519.scalarMult(ephemeral.privateKey, pubKey.raw)
-        val newAccumulator = Curve25519.add(sharedSecret, this.accumulator)
-        newAccumulator.copyInto(this.accumulator)
-        this.pubKeys[pubKey.encoded] = ephemeral.publicKey.raw
+    /**
+     * Remove one layer of masking.
+     *
+     * !!!WARNING!!!!
+     * This method assumes that the secret key used here corresponds to one of the public keys used in the combined
+     * public key. If a wrong key is used, then the result is unrecoverably CORRUPTED.
+     */
+    fun unmask(secretKey: Scalar): Komuta {
+        val playerPublicKey = Point.fromPrivate(secretKey)
+        val d1 = this.epk.scalarMult(secretKey)
+        return Komuta(this.pk.sub(playerPublicKey), this.epk, this.msg.sub(d1))
     }
 
-    fun removeEncryption(keyPair: Curve25519.KeyPair) {
-        val ePubKey = pubKeys[keyPair.publicKey.encoded] ?: return
-        val sharedSecret = Curve25519.scalarMult(keyPair.privateKey, ePubKey)
-        val newAccumulator = Curve25519.sub(this.accumulator, sharedSecret)
-        newAccumulator.copyInto(this.accumulator)
-        this.pubKeys.remove(keyPair.publicKey.encoded)
+    fun isMasked(): Boolean {
+        return this.pk.serialize().equals(Point.ZERO.serialize())
     }
-
-    fun isMasked() = pubKeys.isNotEmpty()
 
     override fun toString(): String {
-        val out = arrayListOf(accumulator.encodeBase64())
-        out.addAll(pubKeys.flatMap {
-            listOf(it.key, it.value.encodeBase64())
-        })
-        return out.joinToString(",")
+        return arrayOf(this.pk, this.epk, this.msg).map { it.serialize() }.joinToString(",")
     }
 
     companion object {
-        fun fromString(serialized: String): Komuta {
-            val collection = ArrayDeque(serialized.split(","))
-
-            val accumulator = collection.removeFirst().decodeBase64()
-            val ephemeralKeys = mutableMapOf<String, ByteArray>()
-            while (collection.isNotEmpty()) {
-                val pub = collection.removeFirst()
-                val eph = collection.removeFirst().decodeBase64()
-                ephemeralKeys[pub] = eph
+        fun fromString(input: String): Komuta {
+            val components = input.split(",")
+            if (components.size != 3) {
+                throw IllegalArgumentException("The input is not formatted correctly.")
             }
-
-            return Komuta(PublicKey(accumulator), ephemeralKeys)
+            val (pk, epk, msg) = components.map { Point(it) }
+            return Komuta(pk, epk, msg)
         }
     }
-
 }
-
-@Suppress("INLINE_CLASS_DEPRECATED")
-inline class PublicKey(val raw: ByteArray) {
-    val encoded: String
-        get() = raw.encodeBase64()
-
-    constructor(encoded: String) : this(encoded.decodeBase64())
-}
-
-fun String.decodeBase64(): ByteArray = BaseCodec(base64pad).decode(this)
-fun ByteArray.encodeBase64(): String = BaseCodec(base64pad).encode(this)
