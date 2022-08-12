@@ -1,3 +1,11 @@
+## [1.0.1](https://github.com/mirceanis/komuta/compare/1.0.0...1.0.1) (2022-08-12)
+
+
+### Bug Fixes
+
+* **ci:** enable build on branch push ([d0adf2c](https://github.com/mirceanis/komuta/commit/d0adf2c8b6fb30e4ca4d62e8db975011a619c2ed))
+* **deps:** fix js build and remove native build because of hardcoding issues in kotlin 1.6.10 ([a9e3df2](https://github.com/mirceanis/komuta/commit/a9e3df2f7241ce771bf136e726422cb3d723d02e))
+
 ## [1.0.1](https://github.com/mirceanis/komuta/compare/1.0.0...1.0.1) (2022-07-22)
 
 
