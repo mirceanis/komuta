@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.konan.properties.loadProperties
 
 plugins {
-    kotlin("multiplatform") version "1.7.22"
+    kotlin("multiplatform") version "1.8.0"
     id("maven-publish")
 }
 
